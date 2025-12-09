@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+windowsvenv/
+ENV/
+env/
+
+# Audio recordings
+.voice-recordings/
+*.wav
+*.tmp.wav
+
+# Whisper.cpp build artifacts
+whisper.cpp/
+whisper-windows/
+whisper-windows-cuda/
+whisper-cpp-cuda-build/
+whisper-cuda-wsl/
+
+# Ollama models (too large for git)
+*.bin
+*.gguf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.log
+*.tmp
+tmp*/
+temp*/
+
+# Windows
+$RECYCLE.BIN/
+*.lnk
