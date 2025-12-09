@@ -9,6 +9,7 @@ A local-first voice assistant for the terminal using **whisper.cpp** for speech 
 ## Features
 
 - 🎤 **Voice Input**: Record audio with simple keyboard controls
+- ⌨️ **Text Input**: Type messages directly when you don't want to use voice
 - 🤖 **Local AI**: Runs entirely on your machine - no cloud services
 - 🚀 **GPU Accelerated**: Supports CUDA for both whisper.cpp and Ollama
 - 🎨 **Styled Output**: Beautiful colored terminal UI with formatted responses
@@ -20,7 +21,10 @@ A local-first voice assistant for the terminal using **whisper.cpp** for speech 
 
 ```
 Voice agent ready.
-Press Ctrl+T to start/stop recording and send. Press q to quit.
+Press Ctrl+T to start/stop recording. Press Ctrl+R to type a message. Press q to quit.
+
+[Type your message, press Enter to send]
+> What did Einstein discover?
 
 ╭─ YOU ────────────────────────────────────────────────────────╮
 │ What did Einstein discover?                                  │
@@ -109,7 +113,8 @@ Press Ctrl+T to start/stop recording and send. Press q to quit.
 
 ## Controls
 
-- **Ctrl+T** - Start/Stop recording and send to AI
+- **Ctrl+T** - Start/Stop voice recording and send to AI
+- **Ctrl+R** - Type a text message and send to AI (no voice needed)
 - **q** - Quit the application
 
 ## Configuration

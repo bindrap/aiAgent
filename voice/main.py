@@ -137,7 +137,7 @@ class VoiceAgent:
 
     def start(self):
         print("Voice agent ready.")
-        print("Press Ctrl+T to start/stop recording and send. Press q to quit.")
+        print("Press Ctrl+T to start/stop recording. Press Ctrl+R to type a message. Press q to quit.")
         if os.name == "posix":
             print("Tip: If Ctrl+S freezes the terminal, run `stty -ixon` before starting.")
         controller = TerminalController()
@@ -157,6 +157,8 @@ class VoiceAgent:
                         self._handle_stop()
                     else:
                         self._handle_start()
+                elif code == 18:  # Ctrl+R - text input mode
+                    self._handle_text_input(controller)
                 elif code == 19:  # Ctrl+S (for backwards compatibility on POSIX)
                     if self.recorder.is_recording:
                         self._handle_stop()
@@ -165,6 +167,40 @@ class VoiceAgent:
                     break
         finally:
             controller.restore()
+
+    def _handle_text_input(self, controller: TerminalController):
+        """Handle text input mode - restore terminal, get input, then restore raw mode."""
+        try:
+            # Restore terminal to normal mode for input
+            controller.restore()
+
+            # Print prompt
+            print(f"\n{Style.BRIGHT}{Fore.MAGENTA}[Type your message, press Enter to send]{Style.RESET_ALL}")
+            print(f"{Fore.MAGENTA}> {Style.RESET_ALL}", end="", flush=True)
+
+            # Get user input
+            user_input = input().strip()
+
+            if not user_input:
+                print(f"{Fore.YELLOW}[info] Empty message, cancelled.{Style.RESET_ALL}")
+                return
+
+            # Process the message
+            self._print_user_message(user_input)
+
+            try:
+                reply = self._ask_ollama(user_input)
+                self._print_bot_message(reply)
+            except Exception as exc:
+                print(f"{Fore.RED}[error] Ollama request failed: {exc}{Style.RESET_ALL}")
+
+        finally:
+            # Restore raw terminal mode for keyboard controls
+            if os.name == "posix":
+                import tty
+                tty.setcbreak(controller.fd)
+            # On Windows, msvcrt handles input differently, no restoration needed
+            print()  # Add newline for clean display
 
     def _handle_start(self):
         try:
