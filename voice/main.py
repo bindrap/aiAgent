@@ -40,12 +40,14 @@ from .audio import AudioRecorder
 from .ollama_client import OllamaClient, Message
 from .whisper_client import WhisperCppClient
 
+BOX_WIDTH = 60  # width for content inside the chat boxes
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Terminal voice agent (Ollama + whisper.cpp).")
     parser.add_argument("--model", default="llama3", help="Ollama model name.")
     parser.add_argument("--system", default="You are a concise assistant.", help="System prompt.")
-    parser.add_argument("--whisper-binary", default="./whisper.cpp/main", help="Path to whisper.cpp binary.")
+    parser.add_argument("--whisper-binary", default="./whisper.cpp/build/bin/whisper-cli", help="Path to whisper.cpp binary.")
     parser.add_argument(
         "--whisper-model",
         default="./whisper.cpp/models/ggml-base.en.bin",
@@ -238,43 +240,57 @@ class VoiceAgent:
         except Exception as exc:  # pragma: no cover - interactive
             print(f"{Fore.RED}[error] Ollama request failed: {exc}{Style.RESET_ALL}")
 
+    def _box_header(self, label: str, color) -> str:
+        line_length = BOX_WIDTH + 4  # account for borders and spaces
+        prefix = f"╭─ {label} "
+        fill_len = max(line_length - len(prefix) - 1, 0)
+        return f"{Style.BRIGHT}{color}{prefix}{'─' * fill_len}╮{Style.RESET_ALL}"
+
+    def _box_footer(self, color) -> str:
+        line_length = BOX_WIDTH + 4
+        return f"{Style.BRIGHT}{color}╰{'─' * (line_length - 2)}╯{Style.RESET_ALL}"
+
     def _print_user_message(self, text: str):
-        """Print user message with cyan styling."""
+        """Print user message with cyan styling and consistent box width."""
         print()
-        print(f"{Style.BRIGHT}{Fore.CYAN}╭─ YOU {'─' * 60}╮{Style.RESET_ALL}")
-        # Split long lines but preserve structure
+        print(self._box_header("YOU", Fore.CYAN))
         import textwrap
-        for line in text.split('\n'):
+
+        payload = text.strip() or "(no transcription captured)"
+        for line in payload.split('\n'):
             if line.strip():
-                wrapped = textwrap.fill(line, width=60, subsequent_indent='  ')
+                wrapped = textwrap.fill(line, width=BOX_WIDTH, subsequent_indent='  ')
                 for wrapped_line in wrapped.split('\n'):
-                    print(f"{Fore.CYAN}│ {wrapped_line:<60} │{Style.RESET_ALL}")
-        print(f"{Style.BRIGHT}{Fore.CYAN}╰{'─' * 62}╯{Style.RESET_ALL}")
+                    print(f"{Fore.CYAN}│ {wrapped_line:<{BOX_WIDTH}} │{Style.RESET_ALL}")
+            else:
+                print(f"{Fore.CYAN}│ {'':<{BOX_WIDTH}} │{Style.RESET_ALL}")
+        print(self._box_footer(Fore.CYAN))
         print()
 
     def _print_bot_message(self, text: str):
-        """Print bot message with green styling."""
-        print(f"{Style.BRIGHT}{Fore.GREEN}╭─ ASSISTANT {'─' * 52}╮{Style.RESET_ALL}")
-        # Preserve line breaks and structure
+        """Print bot message with green styling and consistent box width."""
+        print(self._box_header("ASSISTANT", Fore.GREEN))
         import textwrap
+
         lines = text.split('\n')
+        if not any(line.strip() for line in lines):
+            lines = ["(no response)"]
+
         for line in lines:
             if line.strip():
-                # Preserve leading spaces for indentation
                 leading_spaces = len(line) - len(line.lstrip())
                 indent = ' ' * leading_spaces
                 wrapped = textwrap.fill(
                     line.strip(),
-                    width=60,
+                    width=BOX_WIDTH,
                     initial_indent=indent,
-                    subsequent_indent=indent + '  '
+                    subsequent_indent=indent + '  ',
                 )
                 for wrapped_line in wrapped.split('\n'):
-                    print(f"{Fore.GREEN}│ {wrapped_line:<60} │{Style.RESET_ALL}")
+                    print(f"{Fore.GREEN}│ {wrapped_line:<{BOX_WIDTH}} │{Style.RESET_ALL}")
             else:
-                # Preserve empty lines
-                print(f"{Fore.GREEN}│ {'':<60} │{Style.RESET_ALL}")
-        print(f"{Style.BRIGHT}{Fore.GREEN}╰{'─' * 62}╯{Style.RESET_ALL}")
+                print(f"{Fore.GREEN}│ {'':<{BOX_WIDTH}} │{Style.RESET_ALL}")
+        print(self._box_footer(Fore.GREEN))
         print()
 
     def _ask_ollama(self, user_message: str) -> str:

@@ -98,7 +98,7 @@ Press Ctrl+T to start/stop recording. Press Ctrl+R to type a message. Press q to
    ```bash
    git clone https://github.com/ggerganov/whisper.cpp.git
    cd whisper.cpp
-   make
+   make  # or enable GPU flags such as GGML_HIPBLAS=1
    bash ./models/download-ggml-model.sh base.en
    cd ..
    ```
@@ -107,7 +107,7 @@ Press Ctrl+T to start/stop recording. Press Ctrl+R to type a message. Press q to
    ```bash
    python -m voice \
      --model llama3 \
-     --whisper-binary ./whisper.cpp/main \
+     --whisper-binary ./whisper.cpp/build/bin/whisper-cli \
      --whisper-model ./whisper.cpp/models/ggml-base.en.bin
    ```
 
